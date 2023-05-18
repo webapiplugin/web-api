@@ -123,7 +123,14 @@ async def wrapper_request(url: str, method: str, data: str = None, headers: str 
     if not parsed_url.scheme or not parsed_url.netloc:
         raise HTTPException(status_code=400, detail="Invalid URL")
 
-    return await proxy_request(url, method, data, headers)
+    response = await proxy_request(url, method, data, headers)
+
+    # Truncate the response if it exceeds the maximum length
+    max_length = 65536
+    if len(response["response_body"]) > max_length:
+        response["response_body"] = response["response_body"][:max_length - 3] + '...'
+
+    return response
 
 
 if __name__ == '__main__':
