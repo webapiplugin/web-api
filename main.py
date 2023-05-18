@@ -17,7 +17,12 @@ import os
 from urllib.parse import quote
 from fastapi.middleware.cors import CORSMiddleware
 
-app = FastAPI(debug=False)
+app = FastAPI(debug=True)
+
+@app.on_event("startup")
+async def startup():
+    # Configure the rate limiter to allow 10 requests per minute.
+    await FastAPILimiter.init("10/minute")
 
 app.add_middleware(
     CORSMiddleware,
@@ -70,6 +75,7 @@ def sanitize(data):
         return [sanitize(element) for element in data]
     else:
         return data
+sanitizer = Sanitizer()
 
 @app.get("/openapi.yaml")
 async def openapi_spec():
@@ -83,15 +89,7 @@ async def openapi_spec():
     )
     app.openapi_schema = openapi_schema
     return app.openapi_schema
-
 app.openapi = openapi_spec
-
-sanitizer = Sanitizer()
-
-@app.on_event("startup")
-async def startup():
-    # Configure the rate limiter to allow 10 requests per minute.
-    await FastAPILimiter.init("10/minute")
 
 async def proxy_request(url: str, method: str, data: str, headers: str, request: Request):
     try:
@@ -114,7 +112,7 @@ async def proxy_request(url: str, method: str, data: str, headers: str, request:
     return {"status_code": response.status_code, "response_body": sanitized_body}
 
 @app.post("/request")
-async def wrapper_request(url: str, method: str, data: str = None, headers: str = None, request: Request = None, dependencies=[Depends(RateLimiter(times=2, seconds=5))]):
+async def wrapper_request(url: str, method: str, data: str = None, headers: str = None, request: Request = None):
     # Sanitize inputs
     url = sanitizer.sanitize(url)
     method = sanitizer.sanitize(method)

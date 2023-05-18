@@ -1,9 +1,9 @@
-# ChatGPT Plugin Bibliography Generator
+# ChatGPT Web API Plugin
 
 #### Simplifying Web Interaction with ChatGPT
 Make any web request via OpenAI models.
 
-# Embedding Bibliography Plugin into ChatGPT
+# Embedding Web API Plugin into ChatGPT
 
 ## Prerequisites
 - Access to the ChatGPT web interface where plugins can be added.
@@ -14,18 +14,13 @@ Make any web request via OpenAI models.
 
 2. **Add a New Plugin.** Click on the 'Add Plugin' button.
 
-3. **Enter the Plugin URL.** In the field provided, enter the URL of the bibliography plugin: `https://webapiplugin-1-d3545675.deta.app/`
+3. **Enter the Plugin URL.** In the field provided, enter the URL of the web API plugin: `https://webapiplugin-1-d3545675.deta.app/`
 
 4. **Confirm Addition of the Plugin.** Click the 'Confirm' button to finalize the addition of the new plugin.
 
-5. **Test the Plugin.** Once the plugin is added, it should be available for use with ChatGPT. Test it by initiating a conversation related to bibliography or citation search.
+5. **Test the Plugin.** Once the plugin is added, it should be available for use with ChatGPT. Test it by initiating a conversation related to web API.
 
-Now, you can ask ChatGPT to find publications for a topic, suggest DOIs or save publications to your Zotero project.
-
-You can even try the Bibliography Generator Plugin API without access to ChatGPT here:
-```
-https://webapiplugin-1-d3545675.deta.app/freetext_to_bibtex?search_term={<enter_your_search_query>}
-```
+Now, you can ask ChatGPT to access any web page with any request.
 
 The OpenAPI manifest YAML can be accessed here:
 
@@ -34,4 +29,4 @@ The OpenAPI manifest YAML can be accessed here:
 [Legal notes](https://webapiplugin-1-d3545675.deta.app/static/legal.html)
 [Privacy notes](https://webapiplugin-1-d3545675.deta.app/static/privacy.html)
 
-For further information, contact [bibliography_generator@proton.me](mailto:bibliography_generator@proton.me)
+For further information, contact [web_api_plugin@proton.me](mailto:web_api_plugin@proton.me)
