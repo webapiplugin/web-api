@@ -86,7 +86,7 @@ async def openapi_spec():
     return app.openapi_schema
 app.openapi = openapi_spec
 
-async def proxy_request(url: str, method: str, data: str, headers: str, request: Request):
+async def proxy_request(url: str, method: str, data: str, headers: str):
     try:
         if method.lower() == 'get':
             response = requests.get(url, headers=headers)
@@ -106,8 +106,8 @@ async def proxy_request(url: str, method: str, data: str, headers: str, request:
 
     return {"status_code": response.status_code, "response_body": sanitized_body}
 
-@app.post("/request")
-async def wrapper_request(url: str, method: str, data: str = None, headers: str = None, request: Request = None):
+@app.post("/wrapper_request")
+async def wrapper_request(url: str, method: str, data: str = None, headers: str = None):
     # Sanitize inputs
     url = sanitizer.sanitize(url)
     method = sanitizer.sanitize(method)
@@ -122,7 +122,7 @@ async def wrapper_request(url: str, method: str, data: str = None, headers: str 
     except ValidationError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-    return await proxy_request(url, method, data, headers, request)
+    return await proxy_request(url, method, data, headers)
 
 
 if __name__ == '__main__':
