@@ -14,7 +14,7 @@ from typing import List, Dict
 import asyncio
 import uvicorn
 import os
-from urllib.parse import quote
+from urllib.parse import quote, urlparse
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(debug=True)
@@ -118,15 +118,10 @@ async def wrapper_request(url: str, method: str, data: str = None, headers: str 
     if method.lower() not in ['get', 'post', 'put', 'delete']:
         raise HTTPException(status_code=400, detail="Invalid method")
     
-    # Check if the URL includes a scheme
+    # Check if the URL includes a scheme and netloc
     parsed_url = urlparse(url)
-    if not parsed_url.scheme:
-        raise HTTPException(status_code=400, detail="URL must include a scheme (e.g., http, https)")
-
-    try:
-        HttpUrl(url=url)
-    except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    if not parsed_url.scheme or not parsed_url.netloc:
+        raise HTTPException(status_code=400, detail="Invalid URL")
 
     return await proxy_request(url, method, data, headers)
 
