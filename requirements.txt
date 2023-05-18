@@ -1,0 +1,8 @@
+quart
+quart-cors
+fastapi
+fastapi_limiter
+html-sanitizer
+uvicorn
+httpx
+requests

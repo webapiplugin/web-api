@@ -1,0 +1,18 @@
+{
+  "schema_version": "v1",
+  "name_for_human": "Web API Plugin",
+  "name_for_model": "web_api_plugin",
+  "description_for_human": "A versatile tool for interacting with various web APIs and webpages.",
+  "description_for_model": "A plugin that provides a flexible interface for sending requests to any web API or webpage. It supports a variety of methods including GET, POST, PUT, and DELETE. The plugin sanitizes and validates inputs to ensure safe and correct requests. It's designed to be adaptable to a wide range of tasks, from searching scientific publications to interacting with web services.",
+  "auth": {
+    "type": "none"
+  },
+  "api": {
+    "type": "openapi",
+    "url": "https://webapiplugin-1-d3545675.deta.app/openapi.yaml",
+    "is_user_authenticated": false
+  },
+  "logo_url": "https://webapiplugin-1-d3545675.deta.app/static/logo.jpg",
+  "contact_email": "webapiplugin_support@proton.me",
+  "legal_info_url": "https://webapiplugin-1-d3545675.deta.app/static/legal.html"
+}
