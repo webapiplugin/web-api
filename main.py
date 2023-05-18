@@ -19,11 +19,6 @@ from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(debug=True)
 
-@app.on_event("startup")
-async def startup():
-    # Configure the rate limiter to allow 10 requests per minute.
-    await FastAPILimiter.init("10/minute")
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["localhost", "0.0.0.0", "chat.openai.com", "https://webapiplugin-1-d3545675.deta.app/"],
@@ -82,9 +77,9 @@ async def openapi_spec():
     if app.openapi_schema:
         return app.openapi_schema
     openapi_schema = get_openapi(
-        title="Bibliography Generator",
+        title="Web API Plugin",
         version="1.0",
-        description="Democratizing access to scientific research with natural language using Crossref and Zotero",
+        description="Integrate web API access with OpenAI ChatGPT",
         routes=app.routes,
     )
     app.openapi_schema = openapi_schema
