@@ -117,6 +117,12 @@ async def wrapper_request(url: str, method: str, data: str = None, headers: str 
     # Validate url and method
     if method.lower() not in ['get', 'post', 'put', 'delete']:
         raise HTTPException(status_code=400, detail="Invalid method")
+    
+    # Check if the URL includes a scheme
+    parsed_url = urlparse(url)
+    if not parsed_url.scheme:
+        raise HTTPException(status_code=400, detail="URL must include a scheme (e.g., http, https)")
+
     try:
         HttpUrl(url=url)
     except ValidationError as e:
