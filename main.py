@@ -5,7 +5,7 @@ from fastapi.responses import FileResponse, Response, JSONResponse, RedirectResp
 from fastapi_limiter import FastAPILimiter
 from fastapi_limiter.depends import RateLimiter
 from pydantic import BaseModel, HttpUrl, ValidationError
-from restrictedpython import safe_builtins, compile_restricted, limited_builtins, utility_builtins
+from RestrictedPython import safe_builtins, compile_restricted, limited_builtins, utility_builtins
 from html_sanitizer import Sanitizer
 from bandit.core import manager as b_manager
 from fastapi.middleware.cors import CORSMiddleware
@@ -16,7 +16,7 @@ from requests.exceptions import RequestException
 from typing import List, Dict
 import subprocess
 import shutil
-import resource
+import resources as rsrc
 import time
 import asyncio
 import uvicorn
@@ -169,9 +169,9 @@ async def execute_code(code: str):
         file_path = os.path.join(jail_dir, f'{unique_id}.py')
 
         try:
-            # Limit resources
-            resource.setrlimit(resource.RLIMIT_CPU, (20, 20))
-            resource.setrlimit(resource.RLIMIT_NPROC, (2, 2))
+            # Limit rsrcs
+            rsrc.setrlimit(rsrc.RLIMIT_CPU, (20, 20))
+            rsrc.setrlimit(rsrc.RLIMIT_NPROC, (2, 2))
 
             # Write the code to a file
             with open(file_path, 'w') as f:

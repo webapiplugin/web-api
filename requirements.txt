@@ -7,3 +7,4 @@ fastapi-limiter
 httpx
 requests
 uvicorn
+python-resources
