@@ -198,7 +198,7 @@ async def execute_code(code: str):
 
 def validate_code(code):
     # Static code analysis with Bandit
-    b_mgr = b_manager.BanditManager(b_manager.config.Config(), 'file')
+    b_mgr = b_manager.BanditManager(bandit.core.BanditConfig(), 'file')
     b_mgr.discover_files([code], 'python')
     b_mgr.run_tests()
     if b_mgr.results.count_issues() > 0:
