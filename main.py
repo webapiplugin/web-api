@@ -7,7 +7,6 @@ from fastapi_limiter.depends import RateLimiter
 from pydantic import BaseModel, HttpUrl, ValidationError
 from RestrictedPython import safe_builtins, compile_restricted, limited_builtins, utility_builtins
 from html_sanitizer import Sanitizer
-from bandit.core import manager as b_manager
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
 import httpx
@@ -160,7 +159,7 @@ async def execute_code(code: str):
     async with lock:
         # Validate the code
         if not validate_code(code):
-            raise HTTPException(status_code=400, detail="Invalid code")
+            raise HTTPException(status_code=400, detail="Code invalid or not allowed")
 
         # Set up a unique jail directory and filename
         unique_id = uuid.uuid4()
@@ -198,15 +197,10 @@ async def execute_code(code: str):
 
 def validate_code(code):
     # Static code analysis with Bandit
-    b_mgr = b_manager.BanditManager(bandit.core.BanditConfig(), 'file')
+    b_mgr = bandit.core.manager.BanditManager(bandit.core.config.BanditConfig(), 'file')
     b_mgr.discover_files([code], 'python')
     b_mgr.run_tests()
-    if b_mgr.results.count_issues() > 0:
-        return False
-
-    # Code validation with RestrictedPython
-    byte_code = compile_restricted(code, filename='<inline code>', mode='exec')
-    if byte_code.errors:
+    if b_mgr.results_count() > 0:
         return False
 
     return True
