@@ -4,20 +4,41 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, Response, JSONResponse, RedirectResponse
 from fastapi_limiter import FastAPILimiter
 from fastapi_limiter.depends import RateLimiter
-from pydantic import HttpUrl, ValidationError
+from pydantic import BaseModel, HttpUrl, ValidationError
+from restrictedpython import safe_builtins, compile_restricted, limited_builtins, utility_builtins
 from html_sanitizer import Sanitizer
-import json
+from bandit.core import manager as b_manager
+from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware
 import httpx
 import requests
 from requests.exceptions import RequestException
 from typing import List, Dict
+import subprocess
+import shutil
+import resource
+import time
 import asyncio
 import uvicorn
 import os
 from urllib.parse import quote, urlparse
-from fastapi.middleware.cors import CORSMiddleware
+import uuid
+import json
+import logging
+import bandit
 
 app = FastAPI(debug=True)
+
+# Set up logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+class LoggingMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        logger.info(f"Processing request: {request.method} {request.url}")
+        response = await call_next(request)
+        logger.info(f"Response status: {response.status_code}")
+        return response
+app.add_middleware(LoggingMiddleware)
 
 app.add_middleware(
     CORSMiddleware,
@@ -132,6 +153,63 @@ async def wrapper_request(url: str, method: str, data: str = None, headers: str 
 
     return response
 
+lock = asyncio.Lock()
+
+@app.post("/execute/")
+async def execute_code(code: str):
+    async with lock:
+        # Validate the code
+        if not validate_code(code):
+            raise HTTPException(status_code=400, detail="Invalid code")
+
+        # Set up a unique jail directory and filename
+        unique_id = uuid.uuid4()
+        jail_dir = f"/tmp/jail/{unique_id}"
+        os.makedirs(jail_dir, exist_ok=True)
+        file_path = os.path.join(jail_dir, f'{unique_id}.py')
+
+        try:
+            # Limit resources
+            resource.setrlimit(resource.RLIMIT_CPU, (20, 20))
+            resource.setrlimit(resource.RLIMIT_NPROC, (2, 2))
+
+            # Write the code to a file
+            with open(file_path, 'w') as f:
+                f.write(code)
+
+            # Execute the code in a Docker container with security options
+            result = subprocess.run([
+                'docker', 'run', '--rm', '--net=none', '--userns=host', '--security-opt', 'no-new-privileges', '--security-opt', 'seccomp=unconfined', 
+                '--read-only', '--cpus=.2', '--memory=50m', '--pids-limit=2', '-v', f'{jail_dir}:/code', 'python:3.9', 'python', f'/code/{unique_id}.py'
+            ], capture_output=True, text=True, timeout=60)
+
+            if result.stderr:
+                raise HTTPException(status_code=500, detail="Execution error")
+        except subprocess.TimeoutExpired:
+            raise HTTPException(status_code=408, detail="Execution timeout")
+        except Exception as e:
+            logging.error(f"Error executing code: {e}")
+            raise HTTPException(status_code=500, detail="Internal server error")
+        finally:
+            # Delete the jail directory
+            shutil.rmtree(jail_dir)
+
+        return {"result": result.stdout}
+
+def validate_code(code):
+    # Static code analysis with Bandit
+    b_mgr = b_manager.BanditManager(b_manager.config.Config(), 'file')
+    b_mgr.discover_files([code], 'python')
+    b_mgr.run_tests()
+    if b_mgr.results.count_issues() > 0:
+        return False
+
+    # Code validation with RestrictedPython
+    byte_code = compile_restricted(code, filename='<inline code>', mode='exec')
+    if byte_code.errors:
+        return False
+
+    return True
 
 if __name__ == '__main__':
     os.system("uvicorn main:app --host 0.0.0.0 --port 5003 --reload")

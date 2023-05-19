@@ -1,8 +1,9 @@
-quart
-quart-cors
 fastapi
-fastapi_limiter
+pydantic
+RestrictedPython
 html-sanitizer
-uvicorn
+bandit
+fastapi-limiter
 httpx
 requests
+uvicorn
